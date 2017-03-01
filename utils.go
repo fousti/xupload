@@ -26,7 +26,7 @@ func NewCertsReloader(certPath, keyPath string) (*CertsReloader, error) {
 	}
 	result.cert = &cert
 	go result.onReload()
-	logger.Info("Instantiate new certs reloader")
+
 	return result, nil
 }
 
@@ -45,7 +45,6 @@ func (reloader *CertsReloader) reload() error {
 func (reloader *CertsReloader) onReload() {
 	listener := make(chan os.Signal, 1)
 	signal.Notify(listener, syscall.SIGHUP)
-	logger.Info("Listening on SIGHUP for reloading certs")
 	for range listener {
 		logger.Info("Receive SIGHUP, reload certs...")
 		if err := reloader.reload(); err != nil {

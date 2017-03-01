@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"crypto/sha1"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -793,7 +794,16 @@ func main() {
 				// ReadTimeout: 60 * time.Second,
 			}
 			if len(parts) > 1 {
-				go server.ListenAndServeTLS(parts[1], parts[2])
+				certReloader, err := NewCertsReloader(parts[1], parts[2])
+				if err != nil {
+					logger.Error("Could not load TLS certificates: %s", err)
+					os.Exit(2)
+				}
+				tlsconf := &tls.Config{
+					GetCertificate: certReloader.GetCertificateFunc(),
+				}
+				server.TLSConfig = tlsconf
+				go server.ListenAndServeTLS("", "")
 			} else {
 				go server.ListenAndServe()
 			}
